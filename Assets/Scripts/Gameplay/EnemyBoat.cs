@@ -10,7 +10,7 @@ public class EnemyBoat : Boat
         changeTimer -= Time.deltaTime;
         if (changeTimer <= 0f)
         {
-            forwardInput = Random.Range(0.5f, 1f);
+            forwardInput = Random.Range(-1f, 1f);
             sideInput = Random.Range(-1f, 1f);
             changeTimer = decisionInterval;
         }

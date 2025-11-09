@@ -32,10 +32,10 @@ public class Bobbing : MonoBehaviour
     {
         // Tilt based on horizontal input
         float turn = Input.GetAxis("Horizontal");
-        float targetTilt = -turn * tiltAngle;
+        float targetTilt = turn * tiltAngle;
         Vector3 currentEuler = transform.localEulerAngles;
         // Keep smooth tilt
-        float tilt = Mathf.LerpAngle(currentEuler.x, targetTilt, Time.deltaTime * 5f);
-        transform.localEulerAngles = new Vector3(tilt, currentEuler.y, currentEuler.z);
+        float tilt = Mathf.LerpAngle(currentEuler.z, targetTilt, Time.deltaTime * 5f);
+        transform.localEulerAngles = new Vector3(currentEuler.x, currentEuler.y, tilt);
     }
 }
