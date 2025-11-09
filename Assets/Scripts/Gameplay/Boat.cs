@@ -5,62 +5,62 @@ public class Boat : MonoBehaviour
 {
     [Header("Movement Settings")]
     public float maxForwardSpeed = 5f;
-    public float acceleration = 1f;      // How fast speed increases
-    public float deceleration = 0.5f;      // How fast it slows down when no input
-    public float turnSpeed = 90f;        // Degrees per second
+    public float acceleration = 1f;
+    public float deceleration = 0.5f;
+    public float turnSpeed = 0.000005f;
+    public float turnRate = 0f;
+    public float currentTurnRate = 0f;
+    public float maxTurnRate = 50f;
 
-    private Rigidbody rb;
-    private float currentSpeed = 0f;
+    protected Rigidbody rb;
+    protected float currentSpeed = 0f;
 
-    void Start()
+    protected float forwardInput = 0f;
+    protected float sideInput = 0f;
+
+    protected virtual void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true; // We'll handle rotation manually
+        rb.freezeRotation = true;
     }
 
-    void Update()
+    protected virtual void Update()
     {
+        ReadInput();
         HandleMovement();
     }
-    void UserInput()
-    {
 
+    protected virtual void ReadInput()
+    {
+        // placeholder — subclasses override this
+        forwardInput = 0;
+        sideInput = 0;
     }
-    void HandleMovement(float forwardInput, float sideInput)
-    {
-        // --- Throttle input ---
-        //float throttle = forwardInput; // W/S or Up/Down arrows
-        float throttle = Input.GetAxis("Vertical"); // W/S or Up/Down arrows
 
-        // Accelerate or decelerate
-        if (Mathf.Abs(throttle) > 0.01f)
+    protected void HandleMovement()
+    {
+        if (Mathf.Abs(forwardInput) > 0.01f)
+            currentSpeed += forwardInput * acceleration * Time.deltaTime;
+        else
+            currentSpeed = Mathf.MoveTowards(currentSpeed, 0, deceleration * Time.deltaTime);
+
+        currentSpeed = Mathf.Clamp(currentSpeed, -maxForwardSpeed, maxForwardSpeed);
+
+        if (Mathf.Abs(sideInput) > 0.5f && Mathf.Abs(currentSpeed) > 0.2f)
         {
-            currentSpeed += throttle * acceleration * Time.deltaTime;
+            currentTurnRate += turnSpeed * sideInput * Time.deltaTime;
         }
         else
         {
-            // Slowly reduce speed when no input
-            currentSpeed = Mathf.MoveTowards(currentSpeed, 0, deceleration * Time.deltaTime);
+            //currentTurnRate = Mathf.MoveTowards(currentTurnRate, 0, turnRate * Time.deltaTime);
         }
+        currentTurnRate = Mathf.Clamp(currentTurnRate, -maxTurnRate, maxTurnRate);
+        print("currentTurnRate: " + currentTurnRate);
+        print("sideInput: " + sideInput);
 
-        // Clamp speed
-        currentSpeed = Mathf.Clamp(currentSpeed, -maxForwardSpeed, maxForwardSpeed);
+        transform.Rotate(0, currentTurnRate * currentSpeed / maxForwardSpeed * Time.deltaTime, 0);
 
-        // --- Turn input ---
-        // --- Turn only while moving ---
-        if (currentSpeed > 0.2f)
-        {
-            //float turn = sideInput; // A/D or Left/Right arrows
-            float turn = Input.GetAxis("Horizontal"); // A/D or Left/Right arrows
-            if (Mathf.Abs(turn) > 0.01f)
-            {
-                transform.Rotate(0, turn * turnSpeed * currentSpeed / maxForwardSpeed * Time.deltaTime, 0);
-            }
-        }
-
-        // --- Apply movement ---
         Vector3 forward = transform.forward * currentSpeed;
-        rb.linearVelocity = new Vector3(forward.x, rb.linearVelocity.y, forward.z); // preserve vertical
+        rb.linearVelocity = new Vector3(forward.x, rb.linearVelocity.y, forward.z);
     }
-
 }
